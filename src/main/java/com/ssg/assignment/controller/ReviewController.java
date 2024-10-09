@@ -1,6 +1,7 @@
 package com.ssg.assignment.controller;
 
 import com.ssg.assignment.dto.request.CreateReviewRequestDto;
+import com.ssg.assignment.dto.response.ReviewResponseDto;
 import com.ssg.assignment.service.ReviewService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,14 @@ public class ReviewController {
                                           @RequestPart("review")CreateReviewRequestDto dto) {
         reviewService.addReview(productId, file, dto);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{productId}/reviews")
+    public ResponseEntity<ReviewResponseDto> getProductReviews(@PathVariable Long productId,
+                                                               @RequestParam Long cursor,
+                                                               @RequestParam(defaultValue = "10") int size) {
+        ReviewResponseDto response = reviewService.getReviewList(productId, cursor, size);
+        return ResponseEntity.ok(response);
     }
 
 }

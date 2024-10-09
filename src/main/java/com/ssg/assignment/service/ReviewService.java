@@ -1,12 +1,15 @@
 package com.ssg.assignment.service;
 
 import com.ssg.assignment.dto.request.CreateReviewRequestDto;
+import com.ssg.assignment.dto.response.ReviewResponseDto;
 import com.ssg.assignment.entity.Product;
 import com.ssg.assignment.entity.Review;
 import com.ssg.assignment.repository.ProductRepository;
 import com.ssg.assignment.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +41,15 @@ public class ReviewService {
         reviewRepository.save(review);
         updateProductReviewStats(product);
 
+    }
+
+    public ReviewResponseDto getReviewList(Long productId, Long cursor, int size) {
+        Product product = getProduct(productId);
+
+        Pageable pageable = PageRequest.of(0, size);
+        List<Review> reviews = reviewRepository.findReviewsByProductId(productId, cursor, pageable);
+
+        return ReviewResponseDto.of(product.getReviewCount(), product.getScore(), reviews);
     }
 
     private void checkDuplicateReview(Long productId, CreateReviewRequestDto dto) {
