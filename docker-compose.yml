@@ -19,7 +19,10 @@ services:
     depends_on:
       - assignment1-database
     image: assignment1/app
+    environment:
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
 
     ports:
-      - "80:8080"
+      - "8080:8080"
     restart: always
