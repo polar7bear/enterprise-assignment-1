@@ -1,15 +1,15 @@
 package com.ssg.assignment.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Review {
 
     @Id
@@ -20,7 +20,7 @@ public class Review {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    private float reviewScore;
+    private int reviewScore;
 
     private String content;
 
@@ -28,6 +28,16 @@ public class Review {
 
     private Long userId;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
+    public static Review of(Product product, int reviewScore, String content, String imageUrl, Long userId) {
+        return Review.builder()
+                .product(product)
+                .reviewScore(reviewScore)
+                .content(content)
+                .imageUrl(imageUrl)
+                .userId(userId)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
 }
