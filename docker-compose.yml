@@ -1,0 +1,25 @@
+services:
+  assignment1-database:
+    container_name: assignment1-database
+    build:
+      dockerfile: Dockerfile
+      context: ./db
+    image: assignment1/database
+    environment:
+      - MYSQL_DATABASE=assignment
+      - MYSQL_ROOT_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+    ports:
+      - "3306:3306"
+
+  assignment1-app:
+    container_name: assignment1-app
+    build:
+      dockerfile: Dockerfile
+      context: .
+    depends_on:
+      - assignment1-database
+    image: assignment1/app
+
+    ports:
+      - "80:8080"
+    restart: always
