@@ -39,9 +39,11 @@ public class ReviewService {
                 imageUrl,
                 dto.getUserId());
         reviewRepository.save(review);
-        updateProductReviewStats(product);
-
+        //updateProductReviewStats(product);
+        updateProductReviewStatsByQuery(productId, dto.getScore());
     }
+
+
 
     public ReviewResponseDto getReviewList(Long productId, Long cursor, int size) {
         Product product = getProduct(productId);
@@ -77,5 +79,9 @@ public class ReviewService {
         productRepository.save(product);
     }
 
+    // 동시성 문제를 방지하기 위해 상품의 리뷰 수와 리뷰 점수를 원자적으로 업데이트하는 쿼리를 실행
+    private void updateProductReviewStatsByQuery(Long productId, int score) {
+        productRepository.updateReviewCountAndScore(productId, score);
+    }
 
 }
