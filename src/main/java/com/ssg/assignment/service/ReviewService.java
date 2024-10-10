@@ -6,16 +6,18 @@ import com.ssg.assignment.entity.Product;
 import com.ssg.assignment.entity.Review;
 import com.ssg.assignment.repository.ProductRepository;
 import com.ssg.assignment.repository.ReviewRepository;
+import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -26,23 +28,32 @@ public class ReviewService {
     private final ProductRepository productRepository;
     private final S3Service s3Service;
 
+
+    @Retryable(
+            value = {OptimisticLockException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000)
+    )
     @Transactional
     public void addReview(Long productId, MultipartFile file, CreateReviewRequestDto dto) {
-        Product product = getProduct(productId);
-        checkDuplicateReview(productId, dto); // 1명의 회원은 한 상품에 대해 한 개의 리뷰만 달 수 있음.
+        try {
+            Product product = getProduct(productId);
+            checkDuplicateReview(productId, dto); // 1명의 회원은 한 상품에 대해 한 개의 리뷰만 달 수 있음.
 
-        String imageUrl = file != null && !file.isEmpty() ? s3Service.uploadFile(file) : null;
+            String imageUrl = file != null && !file.isEmpty() ? s3Service.uploadFile(file) : null;
 
-        Review review = Review.of(product,
-                dto.getScore(),
-                dto.getContent(),
-                imageUrl,
-                dto.getUserId());
-        reviewRepository.save(review);
-        //updateProductReviewStats(product);
-        updateProductReviewStatsByQuery(productId, dto.getScore());
+            Review review = Review.of(product,
+                    dto.getScore(),
+                    dto.getContent(),
+                    imageUrl,
+                    dto.getUserId());
+            reviewRepository.save(review);
+            //updateProductReviewStats(product);
+            updateProductReviewStatsByQuery(productId, dto.getScore());
+        } catch (OptimisticLockException e) {
+            throw new RuntimeException("리뷰등록에 실패하였습니다. 다시 시도해주세요.");
+        }
     }
-
 
 
     public ReviewResponseDto getReviewList(Long productId, Long cursor, int size) {
