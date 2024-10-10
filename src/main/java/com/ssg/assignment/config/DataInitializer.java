@@ -1,4 +1,4 @@
-package com.ssg.assignment;
+package com.ssg.assignment.config;
 
 import com.ssg.assignment.entity.Product;
 import com.ssg.assignment.repository.ProductRepository;
