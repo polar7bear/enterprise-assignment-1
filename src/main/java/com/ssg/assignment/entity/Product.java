@@ -24,6 +24,9 @@ public class Product {
     @OneToMany(mappedBy = "product")
     List<Review> reivews = new ArrayList<>();
 
+    @Version
+    private Long version;
+
     public Product(int i, float v) {
         this.reviewCount = i;
         this.score = v;
