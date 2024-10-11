@@ -8,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {
 
     @Id
@@ -27,11 +27,8 @@ public class Product {
     @Version
     private Long version;
 
-    public Product(int i, float v) {
-        this.reviewCount = i;
-        this.score = v;
-    }
-
-    public Product() {
+    public Product(int reviewCount, float score) {
+        this.reviewCount = reviewCount;
+        this.score = score;
     }
 }

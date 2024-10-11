@@ -38,7 +38,7 @@ public class ReviewService {
     public void addReview(Long productId, MultipartFile file, CreateReviewRequestDto dto) {
         try {
             Product product = getProduct(productId);
-            checkDuplicateReview(productId, dto); // 1명의 회원은 한 상품에 대해 한 개의 리뷰만 달 수 있음.
+            checkDuplicateReview(productId, dto);
 
             String imageUrl = file != null && !file.isEmpty() ? s3Service.uploadFile(file) : null;
 
@@ -48,14 +48,13 @@ public class ReviewService {
                     imageUrl,
                     dto.getUserId());
             reviewRepository.save(review);
-            //updateProductReviewStats(product);
             updateProductReviewStatsByQuery(productId, dto.getScore());
         } catch (OptimisticLockException e) {
             throw new RuntimeException("리뷰등록에 실패하였습니다. 다시 시도해주세요.");
         }
     }
 
-
+    @Transactional(readOnly = true)
     public ReviewResponseDto getReviewList(Long productId, Long cursor, int size) {
         Product product = getProduct(productId);
 
@@ -77,7 +76,7 @@ public class ReviewService {
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 상품입니다."));
     }
 
-    private void updateProductReviewStats(Product product) {
+    /*private void updateProductReviewStats(Product product) {
         List<Review> reviews = reviewRepository.findByProductId(product.getId());
         long reviewCount = reviews.size();
         double averageScore = reviews.stream()
@@ -88,7 +87,7 @@ public class ReviewService {
         product.setReviewCount(reviewCount);
         product.setScore((float) averageScore);
         productRepository.save(product);
-    }
+    }*/
 
     // 동시성 문제를 방지하기 위해 상품의 리뷰 수와 리뷰 점수를 원자적으로 업데이트하는 쿼리를 실행
     private void updateProductReviewStatsByQuery(Long productId, int score) {
